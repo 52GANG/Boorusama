@@ -21,17 +21,27 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: 安装依赖
-        run: flutter pub get
+      - name: 1. 给脚本加权限 (关键的一步！)
+        # 如果不加这一步，Linux 会拒绝执行 .sh 文件
+        run: chmod +x gen.sh build.sh
 
-      - name: 生成必要代码 (修复 t 报错的关键)
-        run: dart run build_runner build --delete-conflicting-outputs
+      - name: 2. 安装依赖并生成代码 (完全照搬 README)
+        run: |
+          flutter pub get
+          ./gen.sh
 
-      - name: 构建 APK
-        run: flutter build apk --release
+      - name: 3. 修复 NDK 版本 (预防万一)
+        # 防止那个 NDK 版本过低的问题再次出现
+        run: |
+          sed -i 's/ndkVersion = .*/ndkVersion = "28.2.13676358"/' android/app/build.gradle.kts || true
+          sed -i 's/ndkVersion .*/ndkVersion "28.2.13676358"/' android/app/build.gradle || true
 
-      - name: 上传 APK 产物
+      - name: 4. 构建 APK (完全照搬 README)
+        # 直接调用作者写好的 build.sh 脚本
+        run: ./build.sh apk --flavor prod
+
+      - name: 5. 上传 APK 产物
         uses: actions/upload-artifact@v4
         with:
-          name: Boorusama-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: Boorusama-Official-Build
+          path: build/app/outputs/flutter-apk/app-prod-release.apk
