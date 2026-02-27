@@ -1,7 +1,7 @@
 name: Build Android APK
 
 on:
-  workflow_dispatch: # 允许手动点击运行
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -23,6 +23,9 @@ jobs:
 
       - name: 安装依赖
         run: flutter pub get
+
+      - name: 生成必要代码 (修复 t 报错的关键)
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: 构建 APK
         run: flutter build apk --release
